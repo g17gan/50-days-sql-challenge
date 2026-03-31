@@ -3,7 +3,17 @@
 -- Task: Find NULL + Empty Values in All Tables
 -- ============================================
 
+-- ============================================
+-- DATA ISSUES FOUND
+-- ============================================
+-- Table 1: Employees   → Blank/empty values found
+-- Table 2: Departments → No issues found ✅
+-- Table 3: Salaries    → Negative salary values found
+-- Table 4: Attendance  → Dates not in YYYY-MM-DD format
+-- Table 5: Performance → No issues found ✅
+-- ============================================
 -- ==================
+
 -- TABLE 1: EMPLOYEES
 -- ==================
 SELECT * 
@@ -66,34 +76,3 @@ WHERE rating_2022 NOT BETWEEN 1 AND 5 OR
       rating_2024 NOT BETWEEN 1 AND 5;
 
 
-## Data Issues Found
-
-### Table 1: Employees ⚠️
-- Found blank/empty values in one or more columns
-
-### Table 2: Departments ✅
-- No issues found
-
-### Table 3: Salaries ⚠️
-- Found negative salary values
-
-### Table 4: Attendance ⚠️
-- Dates are not in the correct format (expected: YYYY-MM-DD)
-
-### Table 5: Performance ✅
-- No issues found## Data Issues Found
-
-### Table 1: Employees ⚠️
-- Found blank/empty values in one or more columns
-
-### Table 2: Departments ✅
-- No issues found
-
-### Table 3: Salaries ⚠️
-- Found negative salary values
-
-### Table 4: Attendance ⚠️
-- Dates are not in the correct format (expected: YYYY-MM-DD)
-
-### Table 5: Performance ✅
-- No issues found
