@@ -1,0 +1,190 @@
+-- ============================================================
+--  DAY 3 — DATA CLEANING: NULL VALUES & DUPLICATE RECORDS
+--  Tables: employees, performance, salaries, department, attendance
+-- ============================================================
+
+
+-- ============================================================
+-- SECTION 1: CHECKING NULL VALUES IN ALL TABLES
+-- ============================================================
+
+-- 1.1 Check NULLs in department table
+SELECT *
+FROM department
+WHERE dept_id   IS NULL
+   OR dept_name IS NULL
+   OR dept_name = ' ';
+
+-- 1.2 Check NULLs in attendance table
+SELECT *
+FROM attendance
+WHERE attendance_id   IS NULL
+   OR emp_id          IS NULL
+   OR attendance_date IS NULL
+   OR status          IS NULL
+   OR status          = ' ';
+
+-- 1.3 Check NULLs in performance table
+SELECT *
+FROM performance
+WHERE emp_id       IS NULL
+   OR rating_2022  IS NULL
+   OR rating_2023  IS NULL
+   OR rating_2024  IS NULL;
+
+-- 1.4 Check NULLs in salaries table
+SELECT *
+FROM salaries
+WHERE salary_id   IS NULL
+   OR emp_id      IS NULL
+   OR salary      IS NULL
+   OR salary_date IS NULL;
+
+-- 1.5 Check NULLs in employees table
+SELECT *
+FROM employees
+WHERE emp_id    IS NULL
+   OR emp_name  IS NULL
+   OR emp_name  = ''
+   OR age       IS NULL
+   OR city      IS NULL
+   OR city      = ''
+   OR dept_id   IS NULL
+   OR hire_date IS NULL;
+
+
+-- ============================================================
+-- SECTION 2: FIXING NULL VALUES
+-- ============================================================
+
+-- 2.1  performance → replace NULL rating_2023 with 0
+UPDATE performance
+SET    rating_2023 = 0
+WHERE  rating_2023 IS NULL;
+
+-- 2.2  employees → replace NULL / empty emp_name with 'Unknown'
+UPDATE employees
+SET    emp_name = 'Unknown'
+WHERE  emp_name IS NULL
+   OR  emp_name = '';
+
+-- 2.3  employees → replace NULL / empty city with 'Delhi'
+UPDATE employees
+SET    city = 'Delhi'
+WHERE  city IS NULL
+   OR  city = '';
+
+
+-- ============================================================
+-- SECTION 3: CHECKING FOR DUPLICATE RECORDS
+-- ============================================================
+
+-- 3.1  Find duplicate records in employees table
+--      (22 duplicate rows found)
+SELECT   emp_id, emp_name, age, city, dept_id, hire_date,
+         COUNT(*) AS duplicate_count
+FROM     employees
+GROUP BY emp_id, emp_name, age, city, dept_id, hire_date
+HAVING   COUNT(*) > 1;
+
+-- 3.2  Find duplicate records in salaries table
+--      (2 duplicate rows found)
+SELECT   salary_id, emp_id, salary, salary_date,
+         COUNT(*) AS duplicate_count
+FROM     salaries
+GROUP BY salary_id, emp_id, salary, salary_date
+HAVING   COUNT(*) > 1;
+
+-- 3.3  Find duplicate records in performance table
+SELECT   emp_id, rating_2022, rating_2023, rating_2024,
+         COUNT(*) AS duplicate_count
+FROM     performance
+GROUP BY emp_id, rating_2022, rating_2023, rating_2024
+HAVING   COUNT(*) > 1;
+
+-- 3.4  Find duplicate records in department table
+SELECT   dept_id, dept_name,
+         COUNT(*) AS duplicate_count
+FROM     department
+GROUP BY dept_id, dept_name
+HAVING   COUNT(*) > 1;
+
+-- 3.5  Find duplicate records in attendance table
+SELECT   attendance_id, emp_id, attendance_date, status,
+         COUNT(*) AS duplicate_count
+FROM     attendance
+GROUP BY attendance_id, emp_id, attendance_date, status
+HAVING   COUNT(*) > 1;
+
+
+-- ============================================================
+-- SECTION 4: REMOVING DUPLICATE RECORDS
+-- ============================================================
+
+-- 4.1  Remove duplicates from employees table
+--      Keep the row with the lowest rowid for each unique combination
+DELETE FROM employees
+WHERE emp_id IN (
+    SELECT emp_id FROM (
+        SELECT emp_id,
+               ROW_NUMBER() OVER (
+                   PARTITION BY emp_id, emp_name, age, city, dept_id, hire_date
+                   ORDER BY emp_id
+               ) AS row_num
+        FROM employees
+    ) ranked
+    WHERE row_num > 1
+);
+
+-- 4.2  Remove duplicates from salaries table
+DELETE FROM salaries
+WHERE salary_id IN (
+    SELECT salary_id FROM (
+        SELECT salary_id,
+               ROW_NUMBER() OVER (
+                   PARTITION BY salary_id, emp_id, salary, salary_date
+                   ORDER BY salary_id
+               ) AS row_num
+        FROM salaries
+    ) ranked
+    WHERE row_num > 1
+);
+
+
+-- ============================================================
+-- SECTION 5: VERIFY — CONFIRM CLEANING IS COMPLETE
+-- ============================================================
+
+-- 5.1  Confirm no NULLs remain in employees
+SELECT *
+FROM employees
+WHERE emp_id    IS NULL
+   OR emp_name  IS NULL OR emp_name = ''
+   OR age       IS NULL
+   OR city      IS NULL OR city = ''
+   OR dept_id   IS NULL
+   OR hire_date IS NULL;
+
+-- 5.2  Confirm no NULLs remain in performance
+SELECT *
+FROM performance
+WHERE emp_id      IS NULL
+   OR rating_2022 IS NULL
+   OR rating_2023 IS NULL
+   OR rating_2024 IS NULL;
+
+-- 5.3  Confirm no duplicates remain in employees
+SELECT   emp_id, COUNT(*) AS cnt
+FROM     employees
+GROUP BY emp_id
+HAVING   COUNT(*) > 1;
+
+-- 5.4  Confirm no duplicates remain in salaries
+SELECT   salary_id, COUNT(*) AS cnt
+FROM     salaries
+GROUP BY salary_id
+HAVING   COUNT(*) > 1;
+
+-- ============================================================
+-- END OF DAY 3
+-- ============================================================
